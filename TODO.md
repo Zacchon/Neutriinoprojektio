@@ -5,12 +5,11 @@ start, load both and work on whatever is under "Now". When a phase is fully
 complete, collapse it to a single line referencing the commit range. Keep
 the active surface of this file small; archive ruthlessly.
 
-Last updated: Phase 1, projectPoint complete and verified; greatCircle.subdivide next.
+Last updated: Phase 1 complete — frames, faces, projectPoint, subdivide all verified via `_scratch.js`. Phase 2 next.
 
 ## Now
 
-→ Phase 1, `greatCircle.js`: implement `subdivide`. `frames.js` and
-`neutrino.projectPoint` are complete and verified via `_scratch.js`.
+→ Phase 2, `useGeoData`: hook to fetch and decode `public/data/countries.json`.
 
 ## Phase 1: Projection math
 
@@ -31,7 +30,7 @@ Already done: `vec.js`, `faces.js` (skeletons with full implementations of
       _Done when: a hand-picked test point (Aalto antipode, point due north
       on surface, etc.) produces face id and (x, y) consistent with intuition._
       _Blocked by: frames.js complete._
-- [ ] `greatCircle.js`: implement `subdivide`
+- [x] `greatCircle.js`: implement `subdivide`
       _Done when: subdivide between two known points produces a smooth arc
       (intermediate points lie on the great circle, lengths roughly equal)._
 

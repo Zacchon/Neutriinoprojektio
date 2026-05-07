@@ -5,6 +5,7 @@
 import { latLonToEcef, makeBoxFrame, ecefDirectionToBoxLocal } from './frames.js'
 import { makeBox } from './faces.js'
 import { projectPoint } from './neutrino.js'
+import { subdivide } from './greatCircle.js'
 import { dot, normalize, sub } from './vec.js'
 
 // ----- 1. lat/lon -> ECEF -----
@@ -87,3 +88,29 @@ console.log('North pole:           ', projectPoint({ lat: 90, lon: 0 }, eqFrame,
 //   crossing to the side wall).
 console.log('Antipode (lat 0 lon 180):', projectPoint({ lat: 0, lon: 180 }, eqFrame, cube))
 //   θ=180°, straight down → '-Z' center.
+
+// ----- 7. great-circle subdivide -----
+console.log('\n--- subdivide ---')
+
+console.log('Pole to equator/Greenwich, n=4:')
+console.log(subdivide({ lat: 90, lon: 0 }, { lat: 0, lon: 0 }, 4))
+//   expect lats 90, 67.5, 45, 22.5, 0; lon 0 throughout (lon at pole is
+//   ill-defined but atan2(0, ~0) returns 0 here).
+
+console.log('\nEquator (lon 0) to (lon 90), n=3:')
+console.log(subdivide({ lat: 0, lon: 0 }, { lat: 0, lon: 90 }, 3))
+//   expect lat 0, lons 0, 30, 60, 90 — equator is itself a great circle.
+
+console.log('\nDiagonal (0,0) to (60,60), n=4 — equal-arc check:')
+const arc = subdivide({ lat: 0, lon: 0 }, { lat: 60, lon: 60 }, 4)
+console.log(arc)
+const ecefArc = arc.map(latLonToEcef)
+console.log(
+  'consecutive dot products (should all be equal):',
+  ecefArc.slice(0, -1).map((p, i) => dot(p, ecefArc[i + 1]).toFixed(6))
+)
+//   equal dot products ⇒ equal angular spacing ⇒ equal arc lengths.
+
+console.log('\nCoincident endpoints (degenerate), n=2:')
+console.log(subdivide({ lat: 12, lon: 34 }, { lat: 12, lon: 34 }, 2))
+//   expect 3 copies of {lat: 12, lon: 34}; no NaN.
