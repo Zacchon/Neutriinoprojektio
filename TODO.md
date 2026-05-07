@@ -5,11 +5,13 @@ start, load both and work on whatever is under "Now". When a phase is fully
 complete, collapse it to a single line referencing the commit range. Keep
 the active surface of this file small; archive ruthlessly.
 
-Last updated: Phase 1 complete — frames, faces, projectPoint, subdivide all verified via `_scratch.js`. Phase 2 next.
+Last updated: Phase 2 in progress — `useGeoData` complete (242 features). Single-face render next.
 
 ## Now
 
-→ Phase 2, `useGeoData`: hook to fetch and decode `public/data/countries.json`.
+→ Phase 2: render the top (+Z) face as inline SVG in `App.jsx`, observer
+hardcoded at Aalto, 100mm cube. Subdivide each ring, project each vertex,
+drop off-face points, build path strings.
 
 ## Phase 1: Projection math
 
@@ -36,8 +38,8 @@ Already done: `vec.js`, `faces.js` (skeletons with full implementations of
 
 ## Phase 2: Render one face, hardcoded
 
-- [ ] `useGeoData` hook fetches `public/data/countries.json` and decodes
-      via `topojson-client`. Logs feature count to verify load.
+- [x] `useGeoData` hook fetches the country TopoJSON and decodes via
+      `topojson-client`. Logs feature count to verify load. (242 features.)
 - [ ] Render a single face (top, +Z) as inline `<svg>` in `App.jsx`, with
       hardcoded box dimensions and observer at Aalto. Subdivide each ring,
       project each vertex, drop off-face points, build path strings.
