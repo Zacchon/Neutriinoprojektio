@@ -27,7 +27,7 @@ Antarctica's outline is clean.
 
 ## Phase 3: All six faces
 
-- [ ] Render all six faces as separate SVGs in a simple grid layout
+- [x] Render all six faces as separate SVGs in a simple grid layout
       (cube unfold comes later in polish).
 - [ ] Handle face-edge crossings: when a subdivided polyline segment
       crosses from one face to another, split it cleanly so each face

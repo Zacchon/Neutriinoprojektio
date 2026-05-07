@@ -1,8 +1,9 @@
 // Top-level layout and shared state for the app.
 //
-// Phase 2: render the bottom (-Z) face only, with observer hardcoded at
-// Aalto and a 100mm cube. Box dimensions, observer, and rotation will lift
-// into state in Phase 4.
+// Phase 3 (in progress): render all six faces as a 3x2 grid of inline SVGs.
+// Observer hardcoded at Aalto, 100mm cube. Box dimensions, observer, and
+// rotation will lift into state in Phase 4. Edge-crossing splits come later
+// in Phase 3.
 
 import { useMemo } from 'react'
 import { useGeoData } from './hooks/useGeoData.js'
@@ -13,7 +14,6 @@ import { subdivide } from './projection/greatCircle.js'
 
 const OBSERVER = { observerLat: 60.18, observerLon: 24.83, rotationDeg: 0 } // Aalto
 const DIMS = { width: 100, depth: 100, height: 100 }
-const FACE_ID = '-Z'
 const SUBDIV_PER_EDGE = 8 // tune later; coarse enough to be fast, fine enough to look smooth
 // Drop segments that sit entirely on the antimeridian or touch a pole.
 // Natural Earth closes Antarctica's southern boundary by running down lon=180
@@ -29,36 +29,45 @@ const atPole = (p) => Math.abs(p.lat) > POLE_SKIP_LAT
 const isClosureSegment = (a, b) =>
   (onAntimeridian(a) && onAntimeridian(b)) || atPole(a) || atPole(b)
 
-const buildFacePaths = (featureCollection, frame, box, faceId) => {
-  const paths = []
+// Project every ring vertex once and bucket consecutive same-face points
+// into runs, keyed by faceId. A run breaks at face changes, closure segments,
+// or projection failures. Edge crossings drop a connector segment between
+// the last on-face point and the first on-the-next-face point — the second
+// Phase 3 task will split those cleanly.
+const buildAllFacePaths = (featureCollection, frame, box) => {
+  const facePaths = Object.fromEntries(box.faces.map((f) => [f.id, []]))
 
   const processRing = (ring) => {
-    // Project every subdivided vertex along the ring, in order.
     const projected = []
     for (let i = 0; i < ring.length - 1; i++) {
       const a = { lon: ring[i][0], lat: ring[i][1] }
       const b = { lon: ring[i + 1][0], lat: ring[i + 1][1] }
       if (isClosureSegment(a, b)) {
-        projected.push(null) // break the run across the skipped segment
+        projected.push(null)
         continue
       }
       const arc = subdivide(a, b, SUBDIV_PER_EDGE)
-      // Drop the trailing duplicate so segments share endpoints exactly once
-      // (except the very last segment, which keeps its endpoint).
       const slice = i < ring.length - 2 ? arc.slice(0, -1) : arc
       for (const p of slice) projected.push(projectPoint(p, frame, box))
     }
 
-    // Group consecutive on-face points into runs; each run becomes a path.
-    // Edge crossings are dropped here (Phase 3 will split them cleanly).
     let run = []
+    let runFace = null
     const flush = () => {
-      if (run.length >= 2) paths.push(run)
+      if (run.length >= 2 && runFace) facePaths[runFace].push(run)
       run = []
+      runFace = null
     }
     for (const p of projected) {
-      if (p && p.faceId === faceId) run.push(p)
-      else flush()
+      if (!p) {
+        flush()
+        continue
+      }
+      if (p.faceId !== runFace) {
+        flush()
+        runFace = p.faceId
+      }
+      run.push(p)
     }
     flush()
   }
@@ -73,7 +82,7 @@ const buildFacePaths = (featureCollection, frame, box, faceId) => {
     }
   }
 
-  return paths
+  return facePaths
 }
 
 // Convert a run of face-local points into an SVG path string, flipping v so
@@ -88,41 +97,63 @@ const runToD = (run, face) =>
     })
     .join(' ')
 
-const App = () => {
-  const { data, error } = useGeoData()
-
-  const { face, ds } = useMemo(() => {
-    if (!data) return { face: null, ds: [] }
-    const box = makeBox(DIMS)
-    const frame = makeBoxFrame(OBSERVER)
-    const face = box.faces.find((f) => f.id === FACE_ID)
-    const runs = buildFacePaths(data, frame, box, FACE_ID)
-    return { face, ds: runs.map((run) => runToD(run, face)) }
-  }, [data])
-
-  if (error) return <div>Error loading geo data: {String(error.message || error)}</div>
-  if (!data) return <div>Loading geo data…</div>
-
+const FacePreview = ({ face, ds, sizePx }) => {
   const w = face.halfWidth * 2
   const h = face.halfHeight * 2
-
   return (
-    <div style={{ padding: 16 }}>
-      <p style={{ fontFamily: 'sans-serif', fontSize: 13 }}>
-        {FACE_ID} face from observer at lat {OBSERVER.observerLat}, lon {OBSERVER.observerLon}.{' '}
-        {ds.length} polyline runs.
-      </p>
+    <div>
+      <div style={{ fontFamily: 'sans-serif', fontSize: 12, marginBottom: 4 }}>
+        {face.id} · {ds.length} runs
+      </div>
       <svg
         viewBox={`0 0 ${w} ${h}`}
-        width={500}
-        height={500}
-        style={{ border: '1px solid #888', background: '#fafafa' }}
+        width={sizePx}
+        height={(sizePx * h) / w}
+        style={{ border: '1px solid #888', background: '#fafafa', display: 'block' }}
       >
         <rect x={0} y={0} width={w} height={h} fill="none" stroke="#ddd" strokeWidth={0.2} />
         {ds.map((d, i) => (
           <path key={i} d={d} fill="none" stroke="#222" strokeWidth={0.3} strokeLinejoin="round" />
         ))}
       </svg>
+    </div>
+  )
+}
+
+const App = () => {
+  const { data, error } = useGeoData()
+
+  const faceData = useMemo(() => {
+    if (!data) return null
+    const box = makeBox(DIMS)
+    const frame = makeBoxFrame(OBSERVER)
+    const facePaths = buildAllFacePaths(data, frame, box)
+    return box.faces.map((face) => ({
+      face,
+      ds: facePaths[face.id].map((run) => runToD(run, face)),
+    }))
+  }, [data])
+
+  if (error) return <div>Error loading geo data: {String(error.message || error)}</div>
+  if (!faceData) return <div>Loading geo data…</div>
+
+  return (
+    <div style={{ padding: 16, fontFamily: 'sans-serif' }}>
+      <p style={{ fontSize: 13 }}>
+        Observer at lat {OBSERVER.observerLat}, lon {OBSERVER.observerLon}, rotation{' '}
+        {OBSERVER.rotationDeg}°. Box {DIMS.width}×{DIMS.depth}×{DIMS.height} mm.
+      </p>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, max-content)',
+          gap: 16,
+        }}
+      >
+        {faceData.map(({ face, ds }) => (
+          <FacePreview key={face.id} face={face} ds={ds} sizePx={260} />
+        ))}
+      </div>
     </div>
   )
 }
