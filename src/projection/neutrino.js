@@ -4,7 +4,7 @@
 // target point on Earth's surface. It exits the box through some face;
 // that's where the target gets painted.
 
-import { dot, normalize, scale, sub } from './vec.js'
+import { add, dot, scale, sub } from './vec.js'
 import { latLonToEcef, ecefDirectionToBoxLocal } from './frames.js'
 
 /**
@@ -16,29 +16,41 @@ import { latLonToEcef, ecefDirectionToBoxLocal } from './frames.js'
  *   Returns null only on degenerate input (target ~= observer).
  */
 export const projectPoint = (target, boxFrame, box) => {
-  // 1. Ray direction.
-  //      P_ecef   = latLonToEcef(target)
-  //      dir_ecef = normalize(P_ecef - boxFrame.origin)
-  //      dir_box  = ecefDirectionToBoxLocal(dir_ecef, boxFrame)
-  //
-  // 2. Find which face the ray hits. The ray originates at box center
-  //    (= observer in box-local), so parameterize as t · dir_box.
-  //    Each face plane: { P : dot(P, normal) = dot(center, normal) }.
-  //    Solve: t = dot(center, normal) / dot(dir_box, normal).
-  //
-  //    Skip faces where dot(dir_box, normal) <= 0 (ray points away).
-  //    Among the rest, pick the smallest positive t whose hit point falls
-  //    within the face rectangle. For a box with the observer at center,
-  //    exactly one face will satisfy this.
-  //
-  //    NB: the "biggest dot product with normal" shortcut is wrong for
-  //    non-cube boxes — use the explicit ray-plane test.
-  //
-  // 3. Face-local 2D:
-  //      hit      = scale(dir_box, t)
-  //      relative = sub(hit, face.center)
-  //      x = dot(relative, face.u)
-  //      y = dot(relative, face.v)
-  //
-  // TODO: implement.
+  const targetEcef = latLonToEcef(target)
+  const ray = sub(targetEcef, boxFrame.origin)
+  const rayLen = Math.sqrt(dot(ray, ray))
+  if (rayLen < 1e-9) return null
+
+  const dirEcef = scale(ray, 1 / rayLen)
+  const dirBox = ecefDirectionToBoxLocal(dirEcef, boxFrame)
+
+  // Observer stands at the center of the top (+Z) face, not at the box's
+  // geometric center. This is what makes nearly-horizontal rays exit near
+  // the top edge of a side face, per CLAUDE.md's projection convention.
+  const start = [0, 0, box.dimensions.height / 2]
+
+  // Walk each face's plane and find which one the ray pierces first.
+  // t is how far along dirBox (from start) you travel to reach that plane;
+  // the smallest positive t is the exit face. denom <= 0 means the ray is
+  // parallel to or pointing away from the face — can't exit through it.
+  let bestT = Infinity
+  let bestFace = null
+  for (const face of box.faces) {
+    const denom = dot(dirBox, face.normal)
+    if (denom <= 1e-12) continue
+    const t = dot(sub(face.center, start), face.normal) / denom
+    if (t > 0 && t < bestT) {
+      bestT = t
+      bestFace = face
+    }
+  }
+  if (!bestFace) return null
+
+  const hit = add(start, scale(dirBox, bestT))
+  const relative = sub(hit, bestFace.center)
+  return {
+    faceId: bestFace.id,
+    x: dot(relative, bestFace.u),
+    y: dot(relative, bestFace.v),
+  }
 }
