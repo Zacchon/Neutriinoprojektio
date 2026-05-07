@@ -2,13 +2,13 @@
 
 Map projection through the Earth onto a box.
 
-**Live demo**: https://zacchon.github.io/neutriinoprojektio/
+**Live demo**: https://zacchon.github.io/Neutriinoprojektio/
 
 Imagine standing in a rectangular room, curious where each country lies. Neutriinoprojektio visualises this, making the Earth transparent and the borders visible.
 
 ## Status
 
-Currently the observer location is hardcoded at Aalto. See TODO.md for what's coming up next.
+Currently the observer location is hardcoded at Aalto. See [TODO.md](TODO.md) for what's coming up next.
 
 ## Data
 

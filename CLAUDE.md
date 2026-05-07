@@ -171,7 +171,7 @@ node src/projection/_scratch.js   # manual frames/faces verification
 ## Deployment
 
 GitHub Pages via `.github/workflows/deploy.yml`. Pushes to `main` trigger a
-build and deploy. Vite `base` is set to `/neutriinoprojektio/` in
+build and deploy. Vite `base` is set to `/Neutriinoprojektio/` in
 `vite.config.js` — must match the repo name. `public/.nojekyll` is required
 so GitHub Pages doesn't strip files starting with underscores.
 
