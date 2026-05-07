@@ -1,14 +1,14 @@
 // Top-level layout and shared state for the app.
 //
-// Phase 3 (in progress): render all six faces as a 3x2 grid of inline SVGs.
+// Phase 3: render all six faces as a 3x2 grid of inline SVGs, with
+// edge-crossing splits so polylines meet exactly at face boundaries.
 // Observer hardcoded at Aalto, 100mm cube. Box dimensions, observer, and
-// rotation will lift into state in Phase 4. Edge-crossing splits come later
-// in Phase 3.
+// rotation will lift into state in Phase 4.
 
 import { useMemo } from 'react'
 import { useGeoData } from './hooks/useGeoData.js'
 import { makeBoxFrame } from './projection/frames.js'
-import { makeBox } from './projection/faces.js'
+import { makeBox, snapToSharedEdge, toFaceLocal } from './projection/faces.js'
 import { projectPoint } from './projection/neutrino.js'
 import { subdivide } from './projection/greatCircle.js'
 
@@ -30,12 +30,13 @@ const isClosureSegment = (a, b) =>
   (onAntimeridian(a) && onAntimeridian(b)) || atPole(a) || atPole(b)
 
 // Project every ring vertex once and bucket consecutive same-face points
-// into runs, keyed by faceId. A run breaks at face changes, closure segments,
-// or projection failures. Edge crossings drop a connector segment between
-// the last on-face point and the first on-the-next-face point — the second
-// Phase 3 task will split those cleanly.
+// into runs, keyed by faceId. On a face change between adjacent faces, snap
+// the midpoint of the two 3D hits onto the shared edge and append it to both
+// runs so they meet at the boundary. Closure segments and projection
+// failures still break runs.
 const buildAllFacePaths = (featureCollection, frame, box) => {
   const facePaths = Object.fromEntries(box.faces.map((f) => [f.id, []]))
+  const faceById = Object.fromEntries(box.faces.map((f) => [f.id, f]))
 
   const processRing = (ring) => {
     const projected = []
@@ -53,6 +54,7 @@ const buildAllFacePaths = (featureCollection, frame, box) => {
 
     let run = []
     let runFace = null
+    let lastProj = null
     const flush = () => {
       if (run.length >= 2 && runFace) facePaths[runFace].push(run)
       run = []
@@ -61,13 +63,32 @@ const buildAllFacePaths = (featureCollection, frame, box) => {
     for (const p of projected) {
       if (!p) {
         flush()
+        lastProj = null
         continue
       }
-      if (p.faceId !== runFace) {
-        flush()
+      if (runFace && p.faceId !== runFace && lastProj) {
+        const faceA = faceById[runFace]
+        const faceB = faceById[p.faceId]
+        const mid = [
+          (lastProj.hit[0] + p.hit[0]) / 2,
+          (lastProj.hit[1] + p.hit[1]) / 2,
+          (lastProj.hit[2] + p.hit[2]) / 2,
+        ]
+        const edge3d = snapToSharedEdge(mid, faceA, faceB)
+        if (edge3d) {
+          run.push(toFaceLocal(edge3d, faceA))
+          if (run.length >= 2) facePaths[runFace].push(run)
+          run = [toFaceLocal(edge3d, faceB)]
+          runFace = p.faceId
+        } else {
+          flush()
+          runFace = p.faceId
+        }
+      } else if (!runFace) {
         runFace = p.faceId
       }
-      run.push(p)
+      run.push({ x: p.x, y: p.y })
+      lastProj = p
     }
     flush()
   }

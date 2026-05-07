@@ -10,9 +10,11 @@ import { latLonToEcef, ecefDirectionToBoxLocal } from './frames.js'
 /**
  * Project a geographic point onto the box.
  *
- * @returns {{faceId: string, x: number, y: number} | null}
- *   x ∈ [-face.halfWidth, +face.halfWidth],
- *   y ∈ [-face.halfHeight, +face.halfHeight].
+ * @returns {{faceId: string, x: number, y: number, hit: [number, number, number]} | null}
+ *   x, y: face-local 2D coords, in (face.halfWidth, face.halfHeight) range.
+ *   hit:  the 3D ray-face intersection point in box-local coords. Useful
+ *         for edge-crossing logic that needs to express the same point on
+ *         a neighbouring face's basis.
  *   Returns null only on degenerate input (target ~= observer).
  */
 export const projectPoint = (target, boxFrame, box) => {
@@ -52,5 +54,6 @@ export const projectPoint = (target, boxFrame, box) => {
     faceId: bestFace.id,
     x: dot(relative, bestFace.u),
     y: dot(relative, bestFace.v),
+    hit,
   }
 }

@@ -5,13 +5,12 @@ start, load both and work on whatever is under "Now". When a phase is fully
 complete, collapse it to a single line referencing the commit range. Keep
 the active surface of this file small; archive ruthlessly.
 
-Last updated: Phase 2 complete — single-face (-Z) render verified visually. Phase 3 (all six faces) next.
+Last updated: Phase 3 complete — six-face grid with edge-crossing splits. Phase 4 (interactivity) next.
 
 ## Now
 
-→ Phase 3: render all six faces in a grid. Generalize the `useMemo`
-projection in `App.jsx` to produce paths per face and lay them out as
-six SVGs.
+→ Phase 4: lift box dimensions, rotation, and observer lat/lon into
+`App.jsx` state, wire `Controls.jsx` with sliders/number inputs.
 
 ## Phase 1: Projection math — done (d4ffdcf..67d4d2e)
 
@@ -29,7 +28,7 @@ Antarctica's outline is clean.
 
 - [x] Render all six faces as separate SVGs in a simple grid layout
       (cube unfold comes later in polish).
-- [ ] Handle face-edge crossings: when a subdivided polyline segment
+- [x] Handle face-edge crossings: when a subdivided polyline segment
       crosses from one face to another, split it cleanly so each face
       shows its own portion.
 

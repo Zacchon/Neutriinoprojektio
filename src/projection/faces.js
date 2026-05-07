@@ -1,4 +1,6 @@
-// Box geometry: six faces in box-local coordinates.
+// Box geometry: six faces in box-local coordinates, plus face-related
+// helpers (face-local basis projection, shared-edge snapping).
+//
 // Box geometry is defined here in a canonical (unrotated) box-local frame.
 // The user's rotation lives in the *frame* (frames.js), not the box itself —
 // this separation prevents a class of "did I rotate twice?" bugs.
@@ -23,6 +25,8 @@
 // There are multiple defensible orientations for the bottom face print
 // depending on which axis you imagine flipping around to wrap it onto the box;
 // this is one. Adjust here if it's wrong for your physical-print workflow.
+
+import { dot, scale, sub } from './vec.js'
 
 /**
  * @param {{width: number, depth: number, height: number}} dims - in mm
@@ -93,4 +97,33 @@ export const makeBox = ({ width, depth, height }) => {
   ]
 
   return { dimensions: { width, depth, height }, faces }
+}
+
+/**
+ * Express a 3D box-local point in a face's (u, v) basis.
+ * Returns { x, y } in face-local 2D coords (mm), the same convention as
+ * projectPoint's output.
+ */
+export const toFaceLocal = (point3d, face) => {
+  const rel = sub(point3d, face.center)
+  return { x: dot(rel, face.u), y: dot(rel, face.v) }
+}
+
+/**
+ * Snap a 3D box-local point onto the shared edge of two adjacent faces.
+ * Two faces share an edge iff their normals are perpendicular (true for
+ * any pair of distinct cube faces except opposite ones, e.g. +X / -X).
+ *
+ * Method: subtract the point's offset from each face's plane along that
+ * face's normal. Because the normals are perpendicular, removing the
+ * B-normal component doesn't disturb the A-normal component, so the result
+ * lies on both planes — i.e., on their shared edge.
+ *
+ * Returns null for parallel-normal (opposite) face pairs.
+ */
+export const snapToSharedEdge = (point3d, faceA, faceB) => {
+  if (Math.abs(dot(faceA.normal, faceB.normal)) > 1e-9) return null
+  const offsetA = dot(point3d, faceA.normal) - dot(faceA.center, faceA.normal)
+  const offsetB = dot(point3d, faceB.normal) - dot(faceB.center, faceB.normal)
+  return sub(sub(point3d, scale(faceA.normal, offsetA)), scale(faceB.normal, offsetB))
 }
