@@ -5,14 +5,13 @@ start, load both and work on whatever is under "Now". When a phase is fully
 complete, collapse it to a single line referencing the commit range. Keep
 the active surface of this file small; archive ruthlessly.
 
-Last updated: Phase 2 in progress — `useGeoData` complete (242 features). Single-face render next.
+Last updated: Phase 2 complete — single-face (-Z) render verified visually. Phase 3 (all six faces) next.
 
 ## Now
 
-→ Phase 2: render the bottom (-Z) face as inline SVG in `App.jsx`, observer
-hardcoded at Aalto, 100mm cube. Subdivide each ring, project each vertex,
-drop off-face points, build path strings. (-Z chosen over +Z because the
-observer sits at the +Z face center — no rays land there.)
+→ Phase 3: render all six faces in a grid. Generalize the `useMemo`
+projection in `App.jsx` to produce paths per face and lay them out as
+six SVGs.
 
 ## Phase 1: Projection math
 
@@ -41,15 +40,15 @@ Already done: `vec.js`, `faces.js` (skeletons with full implementations of
 
 - [x] `useGeoData` hook fetches the country TopoJSON and decodes via
       `topojson-client`. Logs feature count to verify load. (242 features.)
-- [ ] Render a single face (bottom, -Z) as inline `<svg>` in `App.jsx`, with
+- [x] Render a single face (bottom, -Z) as inline `<svg>` in `App.jsx`, with
       hardcoded box dimensions and observer at Aalto. Subdivide each ring,
       project each vertex, drop off-face points, build path strings.
       (Note: with the observer at the +Z face center, no rays land on +Z, so
       that face is always empty. -Z is the meaningful "look-through-Earth"
       face — projects the antipodal hemisphere.)
-- [ ] Visual sanity check: bottom face from Aalto should show roughly the
-      Antarctic / Southern Ocean region. If it doesn't, the projection
-      is wrong, not the rendering.
+- [x] Visual sanity check: bottom face from Aalto shows roughly the
+      Antarctic / Southern Ocean region. Antarctic closure artefacts in the
+      Natural Earth source filtered out via antimeridian/pole detection.
 
 ## Phase 3: All six faces
 
