@@ -14,17 +14,18 @@
 //   halfWidth:  extent along u (face spans u ∈ [-halfWidth, +halfWidth])
 //   halfHeight: extent along v
 //
-// Convention: viewing each face from *outside* the box, +u is rightward and
-// +v is upward in the printed image, so face prints are right-reading when
-// applied to the physical box.
+// Convention: prints are applied to the *inside* of the box, so an observer
+// inside the box reads them right-side-up. (u, v) is therefore right/up
+// from the inside viewer's POV, not the outside. For the side faces this
+// means u points the opposite direction from the outside-view convention;
+// for the top and bottom it means v flips.
 //
-// The bottom face (-Z) has v flipped relative to the top — without this,
-// geography south of the antipode would print mirrored.
-//
-// Claude's note:
-// There are multiple defensible orientations for the bottom face print
-// depending on which axis you imagine flipping around to wrap it onto the box;
-// this is one. Adjust here if it's wrong for your physical-print workflow.
+// Top/bottom orientation depends on which way the inside viewer is facing
+// when they tilt their head up or down. We pick body-facing-+Y (north) as
+// canonical: head-tilt-back to look up makes "south" the top of the view
+// (so +Z face has v = -Y), and head-tilt-down to look at the floor makes
+// "north" the top of the view (so -Z face has v = +Y). u stays +X (east)
+// on both because rotating around the ear-to-ear axis doesn't change it.
 
 import { dot, scale, sub } from './vec.js'
 
@@ -44,7 +45,7 @@ export const makeBox = ({ width, depth, height }) => {
       id: '+X',
       center: [hx, 0, 0],
       normal: [1, 0, 0],
-      u: [0, 1, 0], // box +Y (north)
+      u: [0, -1, 0], // box -Y (south) — right for inside viewer facing +X
       v: [0, 0, 1], // box +Z (up)
       halfWidth: hy,
       halfHeight: hz,
@@ -53,7 +54,7 @@ export const makeBox = ({ width, depth, height }) => {
       id: '-X',
       center: [-hx, 0, 0],
       normal: [-1, 0, 0],
-      u: [0, -1, 0], // box -Y (south)
+      u: [0, 1, 0], // box +Y (north) — right for inside viewer facing -X
       v: [0, 0, 1],
       halfWidth: hy,
       halfHeight: hz,
@@ -62,7 +63,7 @@ export const makeBox = ({ width, depth, height }) => {
       id: '+Y',
       center: [0, hy, 0],
       normal: [0, 1, 0],
-      u: [-1, 0, 0], // box -X (west)
+      u: [1, 0, 0], // box +X (east) — right for inside viewer facing +Y
       v: [0, 0, 1],
       halfWidth: hx,
       halfHeight: hz,
@@ -71,7 +72,7 @@ export const makeBox = ({ width, depth, height }) => {
       id: '-Y',
       center: [0, -hy, 0],
       normal: [0, -1, 0],
-      u: [1, 0, 0], // box +X (east)
+      u: [-1, 0, 0], // box -X (west) — right for inside viewer facing -Y
       v: [0, 0, 1],
       halfWidth: hx,
       halfHeight: hz,
@@ -81,7 +82,7 @@ export const makeBox = ({ width, depth, height }) => {
       center: [0, 0, hz],
       normal: [0, 0, 1],
       u: [1, 0, 0], // box +X (east)
-      v: [0, 1, 0], // box +Y (north)
+      v: [0, -1, 0], // box -Y (south) — top of view when tilting head back
       halfWidth: hx,
       halfHeight: hy,
     },
@@ -90,7 +91,7 @@ export const makeBox = ({ width, depth, height }) => {
       center: [0, 0, -hz],
       normal: [0, 0, -1],
       u: [1, 0, 0], // box +X (east)
-      v: [0, -1, 0], // box -Y (south) — flipped, see top-of-file note
+      v: [0, 1, 0], // box +Y (north) — top of view when tilting head down
       halfWidth: hx,
       halfHeight: hy,
     },

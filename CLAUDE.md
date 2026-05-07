@@ -63,11 +63,22 @@ top edge.
 
 ### Face conventions
 
-Looking at each face from *outside* the box, +u is rightward and +v is upward
-in the printed image. The bottom face has v flipped relative to the top so
-prints aren't mirrored when applied to the physical box. The full u/v table
-lives in the comment at the top of `faces.js`. Consult it when implementing
-or modifying any per-face SVG output.
+Prints are applied to the *inside* of the box and read by an observer
+inside it (the same observer the projection is built around). So +u is
+rightward and +v is upward from the inside viewer's POV facing each face,
+not the outside viewer's. For the four side faces this means u is the
+opposite direction from the outside-view convention; for top and bottom,
+v is the one that flips.
+
+Top and bottom orientation depends on which way the inside viewer is
+facing when they tilt their head up or down. The canonical choice is
+body-facing-+Y (north): tilting the head back to look up makes box-south
+(-Y) the top of the view, and tilting it down to look at the floor makes
+box-north (+Y) the top. Both top and bottom keep u = +X (east) because
+rotating around the ear-to-ear axis doesn't change it.
+
+The full u/v table lives in the comment at the top of `faces.js`. Consult
+it when implementing or modifying any per-face SVG output.
 
 ### React patterns (Planned)
 
