@@ -4,6 +4,7 @@
 
 import { latLonToEcef, makeBoxFrame, ecefDirectionToBoxLocal } from './frames.js'
 import { makeBox } from './faces.js'
+import { projectPoint } from './neutrino.js'
 import { dot, normalize, sub } from './vec.js'
 
 // ----- 1. lat/lon -> ECEF -----
@@ -57,3 +58,32 @@ console.log('Antipode dir (rot 90): ', ecefDirectionToBoxLocal(dirAnti, frameRot
 console.log('Far-north dir (rot 90):', ecefDirectionToBoxLocal(dirNorth, frameRot))
 //   should now be mostly along box-X (positive), since "north" rotated
 //   to where "east" was. Expect [positive, ~0, slightly negative].
+
+// ----- 6. projectPoint -----
+// Observer stands at the center of the top (+Z) face. Chord direction from
+// observer to target sits θ/2 below local horizontal, where θ is the angular
+// separation between observer and target on the unit sphere.
+console.log('\n--- projectPoint, observer at Aalto, 100mm cube, rotation 0° ---')
+const obsAalto = { observerLat: 60.18, observerLon: 24.83, rotationDeg: 0 }
+const aaltoFrame = makeBoxFrame(obsAalto)
+const cube = makeBox({ width: 100, depth: 100, height: 100 })
+
+console.log('Antipode of Aalto:    ', projectPoint({ lat: -60.18, lon: 24.83 - 180 }, aaltoFrame, cube))
+//   θ=180°, ray straight down → '-Z' center, x ~ 0, y ~ 0.
+console.log('Far north (lat 70):   ', projectPoint({ lat: 70, lon: 24.83 }, aaltoFrame, cube))
+//   θ ≈ 9.8°, ray ~5° below horizontal pointing box-north → '+Y' side,
+//   y near +halfHeight=+50 (top edge).
+console.log('Equator/lon 24.83:    ', projectPoint({ lat: 0, lon: 24.83 }, aaltoFrame, cube))
+//   θ ≈ 60°, ray 30° below horizontal pointing box-south → '-Y' side,
+//   y positive but well below top edge (upper half of side face).
+console.log('Aalto itself (target = observer): ', projectPoint({ lat: 60.18, lon: 24.83 }, aaltoFrame, cube))
+//   degenerate → null.
+
+console.log('\n--- projectPoint, observer at lat 0 lon 0 ---')
+const eqFrame = makeBoxFrame({ observerLat: 0, observerLon: 0, rotationDeg: 0 })
+console.log('North pole:           ', projectPoint({ lat: 90, lon: 0 }, eqFrame, cube))
+//   θ=90°, ray exactly 45° below horizontal pointing box-north → '+Y' side,
+//   y ~ 0 (face center: ray descends from top to box-vertical-center while
+//   crossing to the side wall).
+console.log('Antipode (lat 0 lon 180):', projectPoint({ lat: 0, lon: 180 }, eqFrame, cube))
+//   θ=180°, straight down → '-Z' center.
