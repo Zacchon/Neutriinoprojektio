@@ -13,42 +13,17 @@ Last updated: Phase 2 complete — single-face (-Z) render verified visually. Ph
 projection in `App.jsx` to produce paths per face and lay them out as
 six SVGs.
 
-## Phase 1: Projection math
+## Phase 1: Projection math — done (d4ffdcf..67d4d2e)
 
-Already done: `vec.js`, `faces.js` (skeletons with full implementations of
-`makeBox`).
+`vec.js`, `frames.js`, `faces.js`, `neutrino.projectPoint`,
+`greatCircle.subdivide`. Verified manually via `_scratch.js`.
 
-- [x] `frames.js`: implement `latLonToEcef`
-      _Done when: scratch section 1 prints values matching the comments._
-- [x] `frames.js`: implement `makeBoxFrame`
-      _Done when: scratch section 2 shows orthogonal basis at Aalto and
-      rotation 90° rotates east/north correctly._
-      _Blocked by: latLonToEcef._
-- [x] `frames.js`: implement `ecefDirectionToBoxLocal`
-      _Done when: scratch section 3 shows antipode direction ~ [0, 0, -1]
-      and far-north direction has the expected sign pattern._
-      _Blocked by: makeBoxFrame._
-- [x] `neutrino.js`: implement `projectPoint` with ray-face intersection
-      _Done when: a hand-picked test point (Aalto antipode, point due north
-      on surface, etc.) produces face id and (x, y) consistent with intuition._
-      _Blocked by: frames.js complete._
-- [x] `greatCircle.js`: implement `subdivide`
-      _Done when: subdivide between two known points produces a smooth arc
-      (intermediate points lie on the great circle, lengths roughly equal)._
+## Phase 2: Render one face, hardcoded — done (1230f51..c17ba66)
 
-## Phase 2: Render one face, hardcoded
-
-- [x] `useGeoData` hook fetches the country TopoJSON and decodes via
-      `topojson-client`. Logs feature count to verify load. (242 features.)
-- [x] Render a single face (bottom, -Z) as inline `<svg>` in `App.jsx`, with
-      hardcoded box dimensions and observer at Aalto. Subdivide each ring,
-      project each vertex, drop off-face points, build path strings.
-      (Note: with the observer at the +Z face center, no rays land on +Z, so
-      that face is always empty. -Z is the meaningful "look-through-Earth"
-      face — projects the antipodal hemisphere.)
-- [x] Visual sanity check: bottom face from Aalto shows roughly the
-      Antarctic / Southern Ocean region. Antarctic closure artefacts in the
-      Natural Earth source filtered out via antimeridian/pole detection.
+`useGeoData` loads the country TopoJSON; `App.jsx` renders the bottom
+(-Z) face as inline SVG with observer hardcoded at Aalto. Antimeridian /
+pole closure segments in the Natural Earth source filtered out so
+Antarctica's outline is clean.
 
 ## Phase 3: All six faces
 
@@ -97,7 +72,7 @@ Not tasks; promote to a phase when ready, or delete if no longer relevant.
   how the print is wrapped onto the box. Revisit when first physical
   prototype is assembled.
 - Consider whether to expose a "show debug overlay" mode (face boundaries,
-  observer position indicator, axes) — probably useful during Phase 2–3
+  observer position indicator, axes) — probably useful during Phase 3
   for visual debugging.
 
 ## Session notes
