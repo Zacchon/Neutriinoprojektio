@@ -51,7 +51,9 @@ Antarctica's outline is clean.
 These are candidates, not commitments. Re-evaluate after Phase 5.
 
 - [ ] Cube-unfold layout for face previews instead of grid.
-- [ ] Optional layers: country borders, lakes, graticule.
+- [ ] Optional layers: country borders, lakes, rivers, graticule.
+- [ ] Filled polygons / per-country colors. See parking lot — needs run
+      stitching to produce closed paths that survive face crossings.
 - [ ] Visual styling pass on the page itself.
 - [ ] Explanatory writing and visuals about the projection concept.
 
@@ -74,6 +76,12 @@ Not tasks; promote to a phase when ready, or delete if no longer relevant.
 - Consider whether to expose a "show debug overlay" mode (face boundaries,
   observer position indicator, axes) — probably useful during Phase 3
   for visual debugging.
+- Filled polygons (for colored fills, lakes, etc.) need a different run
+  topology than the open polylines we currently emit. A polygon ring that
+  visits faces in order A → B → A produces two separate runs on A; the
+  fill would need them stitched into a single closed path with the edge
+  crossings as connectors, plus per-face clipping so the fill doesn't
+  bleed past face boundaries. Defer until we actually want fills.
 
 ## Session notes
 
