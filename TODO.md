@@ -5,12 +5,12 @@ start, load both and work on whatever is under "Now". When a phase is fully
 complete, collapse it to a single line referencing the commit range. Keep
 the active surface of this file small; archive ruthlessly.
 
-Last updated: Phase 1, frames.js complete and verified; neutrino.projectPoint next.
+Last updated: Phase 1, projectPoint complete and verified; greatCircle.subdivide next.
 
 ## Now
 
-→ Phase 1, `neutrino.js`: implement `projectPoint`. `frames.js` is complete
-and verified via `_scratch.js`.
+→ Phase 1, `greatCircle.js`: implement `subdivide`. `frames.js` and
+`neutrino.projectPoint` are complete and verified via `_scratch.js`.
 
 ## Phase 1: Projection math
 
@@ -18,22 +18,22 @@ Already done: `vec.js`, `faces.js` (skeletons with full implementations of
 `makeBox`).
 
 - [x] `frames.js`: implement `latLonToEcef`
-      *Done when: scratch section 1 prints values matching the comments.*
+      _Done when: scratch section 1 prints values matching the comments._
 - [x] `frames.js`: implement `makeBoxFrame`
-      *Done when: scratch section 2 shows orthogonal basis at Aalto and
-      rotation 90° rotates east/north correctly.*
-      *Blocked by: latLonToEcef.*
+      _Done when: scratch section 2 shows orthogonal basis at Aalto and
+      rotation 90° rotates east/north correctly._
+      _Blocked by: latLonToEcef._
 - [x] `frames.js`: implement `ecefDirectionToBoxLocal`
-      *Done when: scratch section 3 shows antipode direction ~ [0, 0, -1]
-      and far-north direction has the expected sign pattern.*
-      *Blocked by: makeBoxFrame.*
-- [ ] `neutrino.js`: implement `projectPoint` with ray-face intersection
-      *Done when: a hand-picked test point (Aalto antipode, point due north
-      on surface, etc.) produces face id and (x, y) consistent with intuition.*
-      *Blocked by: frames.js complete.*
+      _Done when: scratch section 3 shows antipode direction ~ [0, 0, -1]
+      and far-north direction has the expected sign pattern._
+      _Blocked by: makeBoxFrame._
+- [x] `neutrino.js`: implement `projectPoint` with ray-face intersection
+      _Done when: a hand-picked test point (Aalto antipode, point due north
+      on surface, etc.) produces face id and (x, y) consistent with intuition._
+      _Blocked by: frames.js complete._
 - [ ] `greatCircle.js`: implement `subdivide`
-      *Done when: subdivide between two known points produces a smooth arc
-      (intermediate points lie on the great circle, lengths roughly equal).*
+      _Done when: subdivide between two known points produces a smooth arc
+      (intermediate points lie on the great circle, lengths roughly equal)._
 
 ## Phase 2: Render one face, hardcoded
 
