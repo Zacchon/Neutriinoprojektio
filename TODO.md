@@ -9,9 +9,10 @@ Last updated: Phase 2 in progress — `useGeoData` complete (242 features). Sing
 
 ## Now
 
-→ Phase 2: render the top (+Z) face as inline SVG in `App.jsx`, observer
+→ Phase 2: render the bottom (-Z) face as inline SVG in `App.jsx`, observer
 hardcoded at Aalto, 100mm cube. Subdivide each ring, project each vertex,
-drop off-face points, build path strings.
+drop off-face points, build path strings. (-Z chosen over +Z because the
+observer sits at the +Z face center — no rays land there.)
 
 ## Phase 1: Projection math
 
@@ -40,10 +41,13 @@ Already done: `vec.js`, `faces.js` (skeletons with full implementations of
 
 - [x] `useGeoData` hook fetches the country TopoJSON and decodes via
       `topojson-client`. Logs feature count to verify load. (242 features.)
-- [ ] Render a single face (top, +Z) as inline `<svg>` in `App.jsx`, with
+- [ ] Render a single face (bottom, -Z) as inline `<svg>` in `App.jsx`, with
       hardcoded box dimensions and observer at Aalto. Subdivide each ring,
       project each vertex, drop off-face points, build path strings.
-- [ ] Visual sanity check: top face from Aalto should show roughly the
+      (Note: with the observer at the +Z face center, no rays land on +Z, so
+      that face is always empty. -Z is the meaningful "look-through-Earth"
+      face — projects the antipodal hemisphere.)
+- [ ] Visual sanity check: bottom face from Aalto should show roughly the
       Antarctic / Southern Ocean region. If it doesn't, the projection
       is wrong, not the rendering.
 
