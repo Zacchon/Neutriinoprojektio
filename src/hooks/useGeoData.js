@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react'
 import { feature } from 'topojson-client'
 
-const URL = `${import.meta.env.BASE_URL}data/ne_50m_admin_0_countries_simplify10.json`
-const OBJECT_NAME = 'ne_50m_admin_0_countries'
+const URL = `${import.meta.env.BASE_URL}data/countries.json`
 
 /**
  * Returns { data, error }.
@@ -24,7 +23,10 @@ export const useGeoData = () => {
       })
       .then((topology) => {
         if (cancelled) return
-        const fc = feature(topology, topology.objects[OBJECT_NAME])
+        // Single-layer TopoJSON; pick whatever the layer is called so the
+        // hook stays valid if the source layer is renamed during re-export.
+        const objectName = Object.keys(topology.objects)[0]
+        const fc = feature(topology, topology.objects[objectName])
         console.log(`useGeoData: loaded ${fc.features.length} features`)
         setData(fc)
       })
