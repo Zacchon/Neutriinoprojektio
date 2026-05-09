@@ -10,6 +10,7 @@ import { makeBox } from './projection/faces.js'
 import { buildAllFacePaths, runToSvgPath } from './projection/featurePaths.js'
 import { BoxPreview } from './components/BoxPreview.jsx'
 import { Controls } from './components/Controls.jsx'
+import { ExportPanel } from './components/ExportPanel.jsx'
 
 const INITIAL_OBSERVER = { observerLat: 60.18, observerLon: 24.83, rotationDeg: 0 } // Aalto
 const INITIAL_DIMS = { width: 100, depth: 100, height: 100 }
@@ -41,6 +42,7 @@ const App = () => {
         dims={dims}
         setDims={setDims}
       />
+      <ExportPanel faceData={faceData} />
       <BoxPreview faceData={faceData} />
     </div>
   )

@@ -5,12 +5,12 @@ start, load both and work on whatever is under "Now". When a phase is fully
 complete, collapse it to a single line referencing the commit range. Keep
 the active surface of this file small; archive ruthlessly.
 
-Last updated: Phase 4 complete — interactive controls, cross-unfold layout, proportional face sizing. Phase 5 (export) next.
+Last updated: Phase 5 complete — per-face SVG export sized in mm + zip of all faces (fflate). Core feature set done; Phase 6 polish is optional.
 
 ## Now
 
-→ Phase 5: SVG export. Per-face download sized in mm; all-faces export
-as a zip via JSZip.
+→ Nothing committed. Phase 6 is a loose backlog of polish ideas — pick
+whatever feels worth doing next, or stop here.
 
 ## Phase 1: Projection math — done (d4ffdcf..67d4d2e)
 
@@ -44,8 +44,8 @@ Antarctica's outline is clean.
 
 ## Phase 5: Export
 
-- [ ] Single-face SVG download, sized in mm to match physical print.
-- [ ] All-faces export as a zip via JSZip (or similar).
+- [x] Single-face SVG download, sized in mm to match physical print.
+- [x] All-faces export as a zip (fflate, ~4.6 KB gzipped after tree-shaking).
 
 ## Phase 6: Polish — loose backlog, not committed
 

@@ -123,3 +123,24 @@ export const runToSvgPath = (run, face) =>
       return `${i === 0 ? 'M' : 'L'}${sx.toFixed(3)},${sy.toFixed(3)}`
     })
     .join(' ')
+
+/**
+ * Build a standalone SVG document for a single face, sized in millimetres.
+ * The width/height attributes carry the `mm` unit and the viewBox uses
+ * 1 user-unit = 1mm, so when printed at 100% scale the print matches the
+ * physical face dimensions exactly. Includes a thin border rectangle as a
+ * cut-line guide.
+ */
+export const buildFaceSvg = (face, ds) => {
+  const w = face.halfWidth * 2
+  const h = face.halfHeight * 2
+  const paths = ds
+    .map((d) => `  <path d="${d}" fill="none" stroke="black" stroke-width="0.3"/>`)
+    .join('\n')
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${w}mm" height="${h}mm" viewBox="0 0 ${w} ${h}">
+  <rect x="0" y="0" width="${w}" height="${h}" fill="none" stroke="black" stroke-width="0.1"/>
+${paths}
+</svg>
+`
+}
