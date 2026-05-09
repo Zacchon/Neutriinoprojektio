@@ -5,12 +5,12 @@ start, load both and work on whatever is under "Now". When a phase is fully
 complete, collapse it to a single line referencing the commit range. Keep
 the active surface of this file small; archive ruthlessly.
 
-Last updated: Phase 3 complete — six-face grid with edge-crossing splits. Phase 4 (interactivity) next.
+Last updated: Phase 4 complete — interactive controls, cross-unfold layout, proportional face sizing. Phase 5 (export) next.
 
 ## Now
 
-→ Phase 4: lift box dimensions, rotation, and observer lat/lon into
-`App.jsx` state, wire `Controls.jsx` with sliders/number inputs.
+→ Phase 5: SVG export. Per-face download sized in mm; all-faces export
+as a zip via JSZip.
 
 ## Phase 1: Projection math — done (d4ffdcf..67d4d2e)
 
@@ -34,11 +34,13 @@ Antarctica's outline is clean.
 
 ## Phase 4: Interactivity
 
-- [ ] Lift box dimensions, rotation, observer lat/lon into `App.jsx` state.
+- [x] Lift box dimensions, rotation, observer lat/lon into `App.jsx` state.
       Wrap projection in `useMemo` keyed on those + geo data.
-- [ ] Build `Controls.jsx` with sliders / number inputs for the parameters.
-- [ ] Verify performance during slider drag. If janky: reduce subdivision
-      density during interaction, increase on release. (Don't pre-optimize.)
+- [x] Build `Controls.jsx` with sliders / number inputs for the parameters.
+- [x] Verify performance during slider drag. (Smooth at default subdivision.)
+- [x] Cross-unfold layout for face previews + proportional pxPerMm sizing
+      (originally a Phase 6 polish item; pulled forward).
+- [x] Drop +Z from preview (always empty since observer sits at its center).
 
 ## Phase 5: Export
 
@@ -49,7 +51,6 @@ Antarctica's outline is clean.
 
 These are candidates, not commitments. Re-evaluate after Phase 5.
 
-- [ ] Cube-unfold layout for face previews instead of grid.
 - [ ] Optional layers: country borders, lakes, rivers, graticule.
 - [ ] Filled polygons / per-country colors. See parking lot — needs run
       stitching to produce closed paths that survive face crossings.
