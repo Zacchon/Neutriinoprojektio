@@ -12,7 +12,13 @@
 // Adjacent cells share an edge in 3D space and their content lines up
 // across the gap.
 
-const PX_PER_MM = 2.5
+// Reference scale: a 100mm cube renders at 2.5 px/mm (cross is 1000×500 px).
+// For larger boxes we cap the cross pixel size to those reference bounds and
+// shrink px/mm so it fits the page; smaller boxes stay at the reference scale.
+const REF_PX_PER_MM = 2.5
+const REF_DIM_MM = 100
+const MAX_CROSS_W_PX = 4 * REF_DIM_MM * REF_PX_PER_MM // 1000
+const MAX_CROSS_H_PX = 2 * REF_DIM_MM * REF_PX_PER_MM // 500
 
 const CELL = {
   '-X': { gridRow: 1, gridColumn: 1 },
@@ -56,7 +62,7 @@ const FacePreview = ({ face, ds, pxPerMm }) => {
   )
 }
 
-export const BoxPreview = ({ faceData, pxPerMm = PX_PER_MM }) => {
+export const BoxPreview = ({ faceData, pxPerMm }) => {
   // Pull dimensions from any face (all faces in the same box share dims).
   const byId = Object.fromEntries(faceData.map((fd) => [fd.face.id, fd.face]))
   const hx = byId['-Z'].halfWidth // box width / 2
@@ -68,12 +74,18 @@ export const BoxPreview = ({ faceData, pxPerMm = PX_PER_MM }) => {
   // Row heights (mm): side height | -Z depth.
   const rows = [2 * hz, 2 * hy]
 
+  const crossWmm = cols.reduce((a, b) => a + b, 0)
+  const crossHmm = rows.reduce((a, b) => a + b, 0)
+  const effective =
+    pxPerMm ??
+    Math.min(REF_PX_PER_MM, MAX_CROSS_W_PX / crossWmm, MAX_CROSS_H_PX / crossHmm)
+
   return (
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: cols.map((w) => `${w * pxPerMm}px`).join(' '),
-        gridTemplateRows: rows.map((h) => `${h * pxPerMm}px`).join(' '),
+        gridTemplateColumns: cols.map((w) => `${w * effective}px`).join(' '),
+        gridTemplateRows: rows.map((h) => `${h * effective}px`).join(' '),
         gap: 6,
         width: 'max-content',
       }}
@@ -81,7 +93,7 @@ export const BoxPreview = ({ faceData, pxPerMm = PX_PER_MM }) => {
       {faceData
         .filter(({ face }) => CELL[face.id])
         .map(({ face, ds }) => (
-          <FacePreview key={face.id} face={face} ds={ds} pxPerMm={pxPerMm} />
+          <FacePreview key={face.id} face={face} ds={ds} pxPerMm={effective} />
         ))}
     </div>
   )
