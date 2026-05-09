@@ -8,9 +8,10 @@ artistic room-scale installation.
 This is a clean rebuild from scratch. An earlier prototype exists but should
 not be referenced — it accumulated bugs that this rebuild is designed to avoid.
 
-**Current state**: Phase 1 (projection math) in progress. Components, hooks,
-data pipeline, and UI are not yet implemented. Sections below labeled
-"Planned" describe target architecture and should not be assumed to exist.
+**Current state**: Phases 1–3 complete (projection math, single-face render,
+six-face grid with edge-crossing splits). Phase 4 next: lift box dimensions,
+rotation, and observer lat/lon into `App.jsx` state and add `Controls.jsx`.
+See [TODO.md](TODO.md) for the working list.
 
 ## Conventions
 
@@ -25,7 +26,10 @@ Three 3D frames plus one 2D frame.
 - **ECEF**: 3D Cartesian, origin at Earth's center, Earth treated as a unit
   sphere. +X through (lat 0, lon 0). +Y through (0, 90). +Z through the north
   pole. Right-handed.
-- **Box-local**: 3D Cartesian, origin at the observer's surface position.
+- **Box-local**: 3D Cartesian. Origin is the *box's geometric center*; the
+  observer sits at the +Z face center, i.e. `[0, 0, halfHeight]` (this is
+  the chord origin used inside `projectPoint`). The box is anchored to
+  Earth via `boxFrame.origin`, which is the observer's ECEF position.
   +Z = local up (radial direction). +X and +Y are in the local horizontal
   plane, rotated about +Z by the user's `rotationDeg`. At `rotationDeg = 0`,
   +X = geographic east and +Y = geographic north at the observer.
@@ -59,7 +63,7 @@ top edge.
 - Observer at |lat| > 89.9°: "east" is undefined at the poles. The UI should
   clamp the observer latitude before passing it to `makeBoxFrame`.
 - Target point coincident with observer: degenerate zero-length ray.
-  `projectPoint` returns `null` in this case. (Planned, in `neutrino.js`.)
+  `projectPoint` returns `null` in this case.
 
 ### Face conventions
 
@@ -80,9 +84,7 @@ rotating around the ear-to-ear axis doesn't change it.
 The full u/v table lives in the comment at the top of `faces.js`. Consult
 it when implementing or modifying any per-face SVG output.
 
-### React patterns (Planned)
-
-To be applied as components and hooks come online:
+### React patterns
 
 - All projection computations go through `useMemo`, keyed on the inputs
   that affect them (observer position, box dimensions, rotation, geo data).
@@ -104,18 +106,19 @@ src/
   projection/            # pure JS projection math, no React imports
     vec.js               # 3D vector helpers
     frames.js            # coordinate frames
-    faces.js             # box face geometry
-    neutrino.js          # the projection itself (skeleton only)
-    greatCircle.js       # great-circle subdivision (skeleton only)
+    faces.js             # box face geometry + face-local helpers
+    neutrino.js          # the projection itself (projectPoint)
+    greatCircle.js       # great-circle subdivision (slerp)
+    featurePaths.js      # FeatureCollection -> per-face polylines + SVG paths
     _scratch.js          # manual verification, not part of the build
-  components/            # presentational React components (stubs only)
-    BoxPreview.jsx
-    Controls.jsx
-    ExportPanel.jsx
-  hooks/                 # data-fetching and state hooks (stubs only)
-    useGeoData.js
-  main.jsx               # entry point (Vite default; minimal so far)
-  App.jsx                # top-level state and layout (placeholder)
+  components/            # presentational React components
+    BoxPreview.jsx       # six-face grid (implemented)
+    Controls.jsx         # parameter inputs (stub — Phase 4)
+    ExportPanel.jsx      # SVG download (stub — Phase 5)
+  hooks/
+    useGeoData.js        # fetch + decode countries TopoJSON (implemented)
+  main.jsx               # entry point (Vite default)
+  App.jsx                # top-level wiring: hook -> useMemo pipeline -> BoxPreview
 ```
 
 ### Boundary rule
@@ -132,19 +135,20 @@ Pre-processed once at data-prep time and committed to the repo. The app does
 not regenerate or simplify at runtime; if the data needs changing, redo the
 mapshaper step and replace the file.
 
-### Data flow (Planned)
-
-This describes the target pipeline. None of it is wired up yet.
+### Data flow
 
 1. `useGeoData` hook fetches `public/data/countries.json` and decodes via
    `topojson-client`.
-2. The user's box parameters (observer lat/lon, box dimensions, rotation) live
-   in `App.jsx` state.
-3. The projection (`useMemo`-cached) walks geographic features, subdivides
+2. The user's box parameters (observer lat/lon, box dimensions, rotation)
+   live in `App.jsx`. Currently they're constants; Phase 4 lifts them into
+   state with sliders/inputs in `Controls.jsx`.
+3. `featurePaths.buildAllFacePaths` walks geographic features, subdivides
    along great circles, projects each vertex through `neutrino.projectPoint`,
-   and groups results by face.
-4. Per-face SVG path strings are passed to face components for rendering and
-   to the export panel for download.
+   buckets by face, and snaps face-edge crossings onto the shared edge.
+   The whole pipeline runs inside a `useMemo` in `App.jsx`.
+4. `featurePaths.runToSvgPath` converts each face's runs to SVG path
+   strings, which `BoxPreview` renders (and `ExportPanel` will reuse for
+   download in Phase 5).
 
 ## Verification and testing
 
@@ -154,9 +158,8 @@ the expected comments. No test runner is set up; this is intentional for the
 project's current scope. If automated tests are added later, they should
 target `src/projection/` modules in isolation, not React components.
 
-Note: `_scratch.js` will fail to run until all functions it imports are
-implemented (or stubbed). If it errors during Phase 1, that's expected — it
-means the next function to implement is the one whose import is failing.
+All currently-imported functions in `_scratch.js` are implemented; it should
+run without errors.
 
 ## Commands
 
@@ -175,8 +178,7 @@ build and deploy. Vite `base` is set to `/Neutriinoprojektio/` in
 `vite.config.js` — must match the repo name. `public/.nojekyll` is required
 so GitHub Pages doesn't strip files starting with underscores.
 
-The repo is currently private and not yet published; deployment will be
-enabled once there's meaningful content.
+Live at https://zacchon.github.io/Neutriinoprojektio/.
 
 ## Things not to do
 
